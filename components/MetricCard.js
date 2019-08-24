@@ -4,7 +4,7 @@ import DateHeader from './DateHeader'
 import { getMetricMetaInfo } from '../utils/helpers'
 import { gray } from '../utils/colors'
 
-export default function MetricCard ({ date, metrics }) {
+export default function MetricCard({ date, metrics }) {
   return (
     <View>
       {date && <DateHeader date={date} />}
@@ -14,10 +14,10 @@ export default function MetricCard ({ date, metrics }) {
           <View style={styles.metric} key={metric}>
             {getIcon()}
             <View>
-              <Text style={{fontSize: 20}}>
+              <Text style={{ fontSize: 20 }}>
                 {displayName}
               </Text>
-              <Text style={{fontSize: 16, color: gray}}>
+              <Text style={{ fontSize: 16, color: gray }}>
                 {metrics[metric]} {unit}
               </Text>
             </View>

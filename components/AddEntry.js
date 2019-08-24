@@ -3,7 +3,9 @@ import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native
 import {
   getMetricMetaInfo,
   timeToString,
-  getDailyReminderValue
+  getDailyReminderValue,
+  setLocalNotification,
+  clearLocalNotification,
 } from '../utils/helpers'
 import UdaciSlider from './UdaciSlider'
 import UdaciSteppers from './UdaciSteppers'
@@ -14,13 +16,14 @@ import { submitEntry, removeEntry } from '../utils/api'
 import { connect } from 'react-redux'
 import { addEntry } from '../actions'
 import { purple, white } from '../utils/colors'
+import { NavigationActions } from 'react-navigation'
 
-function SubmitBtn ({ onPress }) {
+function SubmitBtn({ onPress }) {
   return (
     <TouchableOpacity
       style={Platform.OS === 'ios' ? styles.iosSubmitBtn : styles.AndroidSubmitBtn}
       onPress={onPress}>
-        <Text style={styles.submitBtnText}>SUBMIT</Text>
+      <Text style={styles.submitBtnText}>SUBMIT</Text>
     </TouchableOpacity>
   )
 }
@@ -32,6 +35,7 @@ class AddEntry extends Component {
     sleep: 0,
     eat: 0,
   }
+  //test
   increment = (metric) => {
     const { max, step } = getMetricMetaInfo(metric)
 
@@ -69,11 +73,12 @@ class AddEntry extends Component {
 
     this.setState(() => ({ run: 0, bike: 0, swim: 0, sleep: 0, eat: 0 }))
 
-    // Navigate to home
+    this.toHome()
 
     submitEntry({ key, entry })
 
-    // Clear local notification
+    clearLocalNotification()
+      .then(setLocalNotification)
   }
   reset = () => {
     const key = timeToString()
@@ -82,9 +87,12 @@ class AddEntry extends Component {
       [key]: getDailyReminderValue()
     }))
 
-    // Route to Home
+    this.toHome()
 
     removeEntry(key)
+  }
+  toHome = () => {
+    this.props.navigation.dispatch(NavigationActions.back({ key: 'Add Entry' }))
   }
   render() {
     const metaInfo = getMetricMetaInfo()
@@ -97,7 +105,7 @@ class AddEntry extends Component {
             size={100}
           />
           <Text>You already logged your information for today.</Text>
-          <TextButton style={{padding: 10}} onPress={this.reset}>
+          <TextButton style={{ padding: 10 }} onPress={this.reset}>
             Reset
           </TextButton>
         </View>
@@ -106,7 +114,7 @@ class AddEntry extends Component {
 
     return (
       <View style={styles.container}>
-        <DateHeader date={(new Date()).toLocaleDateString()}/>
+        <DateHeader date={(new Date()).toLocaleDateString()} />
         {Object.keys(metaInfo).map((key) => {
           const { getIcon, type, ...rest } = metaInfo[key]
           const value = this.state[key]
@@ -116,16 +124,16 @@ class AddEntry extends Component {
               {getIcon()}
               {type === 'slider'
                 ? <UdaciSlider
-                    value={value}
-                    onChange={(value) => this.slide(key, value)}
-                    {...rest}
-                  />
+                  value={value}
+                  onChange={(value) => this.slide(key, value)}
+                  {...rest}
+                />
                 : <UdaciSteppers
-                    value={value}
-                    onIncrement={() => this.increment(key)}
-                    onDecrement={() => this.decrement(key)}
-                    {...rest}
-                  />}
+                  value={value}
+                  onIncrement={() => this.increment(key)}
+                  onDecrement={() => this.decrement(key)}
+                  {...rest}
+                />}
             </View>
           )
         })}
@@ -179,7 +187,7 @@ const styles = StyleSheet.create({
   },
 })
 
-function mapStateToProps (state) {
+function mapStateToProps(state) {
   const key = timeToString()
 
   return {

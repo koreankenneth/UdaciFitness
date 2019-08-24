@@ -26,7 +26,6 @@ class History extends Component {
           }))
         }
       })
-      .then(() => this.setState(() => ({ ready: true })))
       .then(() => this.setState(() => ({
         ready: true,
       })))

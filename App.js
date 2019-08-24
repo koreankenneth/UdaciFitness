@@ -1,5 +1,5 @@
-import React from 'react'
-import { StyleSheet, View, Platform, StatusBar } from 'react-native'
+import React, { Component } from 'react'
+import { StyleSheet, View, Platform, StatusBar, Text } from 'react-native'
 import AddEntry from './components/AddEntry'
 import History from './components/History'
 import EntryDetail from './components/EntryDetail'
@@ -10,9 +10,12 @@ import { createBottomTabNavigator, createAppContainer, createMaterialTopTabNavig
 import { FontAwesome, Ionicons } from '@expo/vector-icons'
 import { purple, white } from './utils/colors'
 import { Constants } from 'expo'
+import Live from './components/Live'
+import { setLocalNotification } from './utils/helpers'
 
 
-function UdaciStatusBar ({backgroundColor, ...props}) {
+
+function UdaciStatusBar({ backgroundColor, ...props }) {
   return (
     <View style={{ backgroundColor, height: Constants.statusBarHeight }}>
       <StatusBar translucent backgroundColor={backgroundColor} {...props} />
@@ -23,12 +26,7 @@ function UdaciStatusBar ({backgroundColor, ...props}) {
 class AddEntryScreen extends React.Component {
   render() {
     return (
-      <Provider store={createStore(reducer)}>
-        <View style={styles.container}>
-          <UdaciStatusBar backgroundColor={purple} barStyle='light-content' />
-          <AddEntry navigation={this.props.navigation} />
-        </View>
-      </Provider>
+      <AddEntry navigation={this.props.navigation} />
     )
   }
 }
@@ -36,31 +34,28 @@ class AddEntryScreen extends React.Component {
 class HistoryScreen extends React.Component {
   render() {
     return (
-      <Provider store={createStore(reducer)}>
-        <View style={styles.container}>
-          <UdaciStatusBar backgroundColor={purple} barStyle='light-content' />
-          <History navigation={this.props.navigation} />
-        </View>
-      </Provider>
+      <History navigation={this.props.navigation} />
     )
   }
 }
 
 const TabNavigator = Platform.OS === 'ios'
   ? createBottomTabNavigator({
-    History: HistoryScreen,
-    AddEntry: AddEntryScreen,
+    'History': HistoryScreen,
+    'Add Entry': AddEntryScreen,
+    'Live': Live
   },
     {
       defaultNavigationOptions: ({ navigation }) => ({
-        tabBarIcon: ({ focused, horizontal, tintColor }) => {
+        tabBarIcon: ({ tintColor }) => {
           const { routeName } = navigation.state
-          let iconName
 
           if (routeName === 'History') {
             return <Ionicons name='ios-bookmarks' size={30} color={tintColor} />
-          } else if (routeName === 'AddEntry') {
+          } else if (routeName === 'Add Entry') {
             return <FontAwesome name='plus-square' size={30} color={tintColor} />
+          } else if (routeName === 'Live') {
+            return <Ionicons name='ios-speedometer' size={30} color={tintColor} />
           }
 
           // You can return any component that you like here!
@@ -83,8 +78,9 @@ const TabNavigator = Platform.OS === 'ios'
     }
   )
   : createMaterialTopTabNavigator({
-    History: HistoryScreen,
-    AddEntry: AddEntryScreen,
+    'History': HistoryScreen,
+    'Add Entry': AddEntryScreen,
+    'Live': Live
   },
     {
       defaultNavigationOptions: ({ navigation }) => ({
@@ -94,8 +90,10 @@ const TabNavigator = Platform.OS === 'ios'
 
           if (routeName === 'History') {
             return <Ionicons name='ios-bookmarks' size={30} color={tintColor} />
-          } else if (routeName === 'AddEntry') {
+          } else if (routeName === 'Add Entry') {
             return <FontAwesome name='plus-square' size={30} color={tintColor} />
+          } else if (routeName === 'Live') {
+            return <Ionicons name='ios-speedometer' size={30} color={tintColor} />
           }
 
           // You can return any component that you like here!
@@ -119,12 +117,47 @@ const TabNavigator = Platform.OS === 'ios'
   )
 
 const MainNavigator = createStackNavigator({
-    Home: TabNavigator,
-    EntryDetail: EntryDetail,
-  }
+  Home: {
+    screen: TabNavigator,
+    navigationOptions: () => ({
+      headerTintColor: white,
+      headerStyle: {
+        backgroundColor: purple,
+      }
+    }),
+  },
+  EntryDetail: {
+    screen: EntryDetail,
+    navigationOptions: () => ({
+      headerTintColor: white,
+      headerStyle: {
+        backgroundColor: purple,
+      }
+    }),
+  },
+
+},
 )
 
-export default createAppContainer(MainNavigator)
+const AppContainer = createAppContainer(MainNavigator);
+
+class App extends Component {
+  componentDidMount() {
+    setLocalNotification()
+  }
+  render() {
+    return (
+      <Provider store={createStore(reducer)}>
+        <View style={styles.container}>
+          <UdaciStatusBar backgroundColor={purple} barStyle='light-content' />
+          <AppContainer />
+        </View>
+      </Provider>
+    );
+  }
+}
+
+export default App
 
 const styles = StyleSheet.create({
   container: {
